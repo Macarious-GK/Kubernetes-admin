@@ -1,0 +1,57 @@
+{{- with .Values.app.deployment }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .name | default "app-deployment" }}
+  {{- include "labels" . | indent 2}}
+spec:
+  replicas: {{ .replicas | default 3 }}
+  selector:
+    matchLabels:
+      tier: app
+  strategy:
+    type: {{ .strategy | default "RollingUpdate" }}
+  template:
+    metadata:
+      labels:
+        tier: app
+    spec:
+      containers:
+        - name: nodejs
+          image: "{{ .image }}:{{ .imageTag }}"
+          ports:
+            - containerPort: {{ .containerPort | default 5000 }}
+          {{- if .resources }}
+          resources:
+            requests:
+              memory: "{{ .resources.requests.memory | default "128Mi" }}"
+              cpu: "{{ .resources.requests.cpu | default "100m" }}"
+            limits:
+              memory: "{{ .resources.limits.memory | default "256Mi" }}"
+              cpu: "{{ .resources.limits.cpu | default "250m" }}"
+          {{- end }}
+          env:
+            - name: MONGODB_URI
+              value: {{ .env.value.MONGODB_URI }}
+{{end}}
+
+---
+{{- with .Values.app.service }}
+  
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name | default "app-service" }}
+  {{- include "labels" . | indent 2}}
+spec:
+  selector:
+    tier: app
+  type: {{ .type | default "clusterIP" }}
+  ports:
+    - port: {{ .port | default 5000 }}
+      targetPort: {{ .targetPort | default 5000 }}
+      protocol: TCP
+      {{- if .nodePort }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
+{{- end }}

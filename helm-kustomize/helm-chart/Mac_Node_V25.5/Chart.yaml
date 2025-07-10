@@ -1,0 +1,9 @@
+apiVersion: v2
+name: Mac_Node_V25.5
+description: A Helm chart for Node.js application with Mongodb Server developed by Macarious_25Siv
+
+type: application
+version: 0.1.0
+appVersion: "02.25.5"
+
+

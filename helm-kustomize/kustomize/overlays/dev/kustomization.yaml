@@ -1,0 +1,26 @@
+resources:
+  - ../../base
+
+namespace: dev
+
+patches:
+  - target:
+      kind: Deployment
+      name: app-deployment-dev  # must match the suffixed name
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 5
+        
+configMapGenerator:
+  - name: mykustom-map
+    env: config.properties
+  - name: mykustom-map2
+    literals:
+      - key1=value1
+      - key2=value2
+    options:
+      labels:
+        app: mykustom-map-label
+        env: dev
+        version: v1
