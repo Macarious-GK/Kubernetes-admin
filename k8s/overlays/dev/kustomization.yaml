@@ -1,0 +1,12 @@
+bases:
+- ../../base
+
+namespace: dev
+
+# patch:
+# - deployment-patch.yaml
+
+
+configMapGenerator:
+- name: mykustom-map
+  env: config.properties

@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  namespace: mac
+spec:
+  rules:
+    - host: mac.local
+      http:
+        paths:
+        - path: "/"
+          pathType: Prefix
+          backend:
+            service:
+              name: nservice
+              port:
+                number: 5000
+        - path: "/api"
+          pathType: Prefix
+          backend:
+            service:
+              name: api
+              port:
+                number: 8080

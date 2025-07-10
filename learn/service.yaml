@@ -1,0 +1,27 @@
+ApiVersion: v1
+kind: Service
+metadata:
+  name: nservice
+  labels:
+    owner: macarious
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5000
+      targetPort: 5000
+      protocol: TCP
+  selector:
+    app: nodejs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+spec:
+  selector:
+    tier: db
+  type: ClusterIP
+  ports:
+    - port: 27017
+      targetPort: 27017
+      protocol: TCP

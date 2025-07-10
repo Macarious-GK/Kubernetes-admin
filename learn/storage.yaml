@@ -1,0 +1,136 @@
+# StorageClass 
+
+### NFS StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-storage
+provisioner: k8s-sigs.io/nfs-subdir-external-provisioner  # NFS provisioner
+parameters:
+  server: nfs-server.example.com
+  path: /share
+  readOnly: "false"
+reclaimPolicy: Retain  # Retain the NFS volume even when the PVC is deleted
+allowVolumeExpansion: true  # Allow volume expansion
+
+---
+### Local StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner # indicates that this StorageClass does not support automatic provisioning
+volumeBindingMode: WaitForFirstConsumer
+---
+
+### Manual StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: manual
+provisioner: kubernetes.io/no-provisioner  # No dynamic provisioning
+---
+
+### Standard StorageClass
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+  name: custom-storageclass
+provisioner: k8s.io/minikube-hostpath
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+
+
+### AWS EBS StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-standard
+provisioner: kubernetes.io/aws-ebs  # The provisioner responsible for provisioning AWS EBS volumes
+parameters:
+  type: gp2  # gp2 is the general-purpose SSD volume type in AWS
+  fsType: ext4  # The filesystem type that should be created on the EBS volume
+reclaimPolicy: Retain  # Keeps the volume data even if the PVC is deleted
+allowVolumeExpansion: true  # Allows the volume size to be increased if needed
+volumeBindingMode: WaitForFirstConsumer  # Delay the binding of the volume until a pod is scheduled
+
+# PresistenceVolume
+### manual pv
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce   # or ReadWriteMany if supported
+  persistentVolumeReclaimPolicy: Retain   # ✅ This prevents deletion
+  storageClassName: manual
+  hostPath:  # only works for local/minikube — change for cloud
+    path: /mnt/data
+### NFS PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-pv-nfs
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany          # NFS supports multiple readers/writers
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  nfs:
+    server: nfs-server.example.com     # replace with your NFS server IP/hostname
+    path: /exported/path                # replace with exported NFS share path
+
+# PresistenceVolumeClaim
+
+###  manual pvc
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: manual-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual-storage
+  resources:
+    requests:
+      storage: 5Gi
+
+###  standard pvc
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mypvc
+  namespace: mac
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+  # volumeMode: Filesystem
+  # selector:
+  #   matchLabels:
+  #     type: mongodb
+  
+###  nfs pvcs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-storage
+  resources:
+    requests:
+      storage: 5Gi
+

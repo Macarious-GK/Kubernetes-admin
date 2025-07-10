@@ -1,0 +1,103 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: nginx
+spec:
+  controllerName: gateway.nginx.org/nginx-gateway-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: mac-nginx-gateway-instance
+spec:
+  gatewayClassName: nginx
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+    allowedRoutes:
+      namespaces:
+        from: All   
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: referencegrant
+  namespace: mac
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: default
+  to:
+  - group: ""
+    kind: Service
+    name: nservice
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mac-httproute
+spec:
+  parentRefs:
+  - name: mac-nginx-gateway-instance
+  hostnames:
+  - "mac.local.com"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: nservice
+      namespace: mac
+      port: 5000
+    #   weight: 80
+
+    # - name: v2-service
+    #   port: 80
+    #   weight: 20
+--- 
+apiVersion: gateway.nginx.org/v1alpha1
+kind: RateLimitPolicy
+metadata:
+  name: mac-gateway-ratelimit
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: mac-nginx-gateway-instance
+  limits:
+    - rate: 10
+      burst: 5
+      window: 1s
+
+
+
+
+
+
+
+
+
+
+# ---
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: HTTPRoute
+# metadata:
+#   name: example-httproute
+# spec:
+#   parentRefs:
+#   - name: example-gateway
+#   hostnames:
+#   - "www.example.com"
+#   rules:
+#   - matches:
+#     - path:
+#         type: PathPrefix
+#         value: /login
+#     backendRefs:
+#     - name: example-svc
+#       port: 8080
+# ---

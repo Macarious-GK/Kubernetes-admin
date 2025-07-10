@@ -1,0 +1,52 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+  namespace: mac
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web
+  namespace: mac
+spec:
+  selector:
+    matchLabels:
+      app: db 
+  serviceName: "nginx"
+  replicas: 1 
+  minReadySeconds: 10 
+  template:
+    metadata:
+      labels:
+        app: db 
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: db
+        image: mongo:4
+        ports:
+          - containerPort: 27017
+        volumeMounts:
+        - name: mypvc
+          mountPath: /data/db
+  volumeClaimTemplates:
+  - metadata:
+      name: mypvc
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 1Gi
+

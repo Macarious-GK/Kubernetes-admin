@@ -1,0 +1,14 @@
+resources: 
+  - namespace.yaml
+  - Application_NodeJS.yaml
+  - Database_MongoDB.yaml
+
+commonLabels:
+  owner: macarious
+  project: nodejs
+  
+namePrefix:
+  nodejs-mongodb-
+
+nameSuffix:
+  -v1
