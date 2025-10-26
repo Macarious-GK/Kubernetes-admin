@@ -605,7 +605,7 @@ spec:
 ```text
 /var/lib/docker
 |- aufs
-|- containers
+|- containers 
 |- images
 |- volumes
 ```
