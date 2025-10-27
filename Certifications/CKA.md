@@ -1596,7 +1596,7 @@ endpoints:
 - An Ingress is a layer 7 (HTTP/HTTPS) router that manages external access to Services within the cluster.
 - To route external HTTP(S) traffic to multiple Services based on hostnames and paths.
 - Act as a reverse proxy
-
+- Support `Host Matching & Path Matching`
 - In order to our ingress rules to work we need Ingress Controller to apply and enforce this rules.
 - After this we define **Ingress Resourse**
 - `spec`:
@@ -1644,6 +1644,43 @@ spec:
 3. HTTPRoute
 4. GRPCRoute
 
+- We have to define GatewayClass that use the gateway controller 
+- A Gateway describes an instance(Use gatewayClassName) of traffic handling infrastructure.
+- We then create Gateway instance that use the class 
+- we define Listeners for the gateway instance to define protocol & port to listen on
+
+<div style="text-align: center;"><img src="../images/GatewaytrafficFlow.png" width="900 " height="300" style="border-radius: 15px;"></div>
+
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: prod-web
+spec:
+  gatewayClassName: example
+  listeners:
+  - protocol: HTTP
+    port: 80
+    name: prod-web-gw
+    allowedRoutes:
+      namespaces:
+        from: Same
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: foo
+spec:
+  parentRefs:
+  - name: prod-web
+  rules:
+  - backendRefs:
+    - name: foo-svc
+      port: 8080
+```
+
 ## Network Policies
 
 ## pod-to-pod & CoreDNS
+
