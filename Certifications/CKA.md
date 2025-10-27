@@ -1578,13 +1578,71 @@ endpoints:
 ```
 
 ## Ingress & Ingress Controller
-<div style="text-align: center;"><img src="../images/ingress.svg" width="750 " height="450" style="border-radius: 15px;"></div>
+
+``` css
+[ Client  ]
+            ↓
+[ Internet ]
+            ↓
+[ Ingress Controller’s Load Balancer / NodePort ]
+            ↓
+[ Ingress Controller Pod (e.g., NGINX, Traefik) ]
+            ↓
+[ Kubernetes Service (backend) ]
+            ↓
+[ Pods (your app containers) ]
+```
 
 - An Ingress is a layer 7 (HTTP/HTTPS) router that manages external access to Services within the cluster.
 - To route external HTTP(S) traffic to multiple Services based on hostnames and paths.
 - Act as a reverse proxy
 
+- In order to our ingress rules to work we need Ingress Controller to apply and enforce this rules.
+- After this we define **Ingress Resourse**
+- `spec`:
+  - defaultBackend
+  - ingressClassName
+  - rules
+
+- Secure the Ingress Using TLS
+  - Create Secret TLS that contain Cert & Key
+
+### Types of Ingress
+- Simple fanout
+  - Same IP & same Host but different Backend using `Path`
+- Name based virtual hosting
+  - Same IP but different hosts -> different backends (`Based on Hosts`)
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tls-example-ingress
+spec:
+  tls:
+  - hosts:
+      - https-example.foo.com
+    secretName: testsecret-tls
+  rules:
+  - host: https-example.foo.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service1
+            port:
+              number: 80
+```
+
+
 ## Gateway API
+- Resource model
+1. GatewayClass
+2. Gateway
+3. HTTPRoute
+4. GRPCRoute
 
 ## Network Policies
 
